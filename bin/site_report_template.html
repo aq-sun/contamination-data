@@ -512,13 +512,18 @@ function clickFunction(str) {
 <button onclick="toggleElements('.heatmap', '.signal')">Heatmap</button>
 <div class="table signal" style="display: block">
     <div id="vertical-scroll">${sig_table}</div>
-    <p>Comparison of average counts between the site ${site_name} and all other sites. The p-value indicates the smallest p-value between ${site_name} and at least one other site.</p>
+    <p><strong>Average counts for all taxa that have a significantly higher count in ${site_name} than at least one other site, after fitting Welch's t-test.</strong> Comparison between the site ${site_name} and all other sites. The p-value indicates the smallest p-value between ${site_name} and at least one other site.</p>
 </div>
 <div class="heatmap signal" style="display: none">
     <div id="vertical-scroll"><img src="data:image/png;base64,${sigmap}" height="${sig_count}*5" width="${width}*64"
         alt="Heatmap depicting every taxa that is statistically significant in having a higher presence in this current site compared to at least one other site."/></div>
     <p><strong>Number of reads for all taxa that have a significantly higher count in ${site_name} than at least one other site, after fitting Welch's t-test.</strong> Taxa have been sorted in ascending order to show taxa with the smallest p-value first.</p>
 </div>
+
+<h3>PCoA</h3>
+<img src="data:image/png;base64,${pcoa}" height=600 width=600
+        alt="PcoA plot depicting a reduced-dimension similarity matrix between the samples of this site and all other sites."/>
+        <p><strong>PcoA plot depicting a reduced-dimension similarity matrix between the samples of this site and all other sites.</strong> ${permanova_annotation}</p>
 <br>
 <br>
 <br>

@@ -40,6 +40,7 @@ if __name__ == "__main__":
     parser.add_argument('--reports', nargs='+', help="List of text files", required=True)
     parser.add_argument('--metadata', help="CSV file path", required=True)
     parser.add_argument('--site_key', help="JSON file specifying site name to number", required=True)
+    parser.add_argument('--plots_dir', help="Shannon plots directory", required=True)
     parser.add_argument('--final_reports', help="Output directory", required=True)
     parser.add_argument('--template', help="HTMl template", required=True)
     parser.add_argument('--reference', help="excel file for dictionary of contaminants", required=True)
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     reports = args.reports
     metadata = pd.read_csv(args.metadata)
     template_dir = args.template
+    plots_dir = args.plots_dir # Import R plots
     #pip install openpyxl
     niche_table = pd.read_excel(args.reference)
     output_path = args.final_reports
@@ -477,7 +479,7 @@ if __name__ == "__main__":
 
         # Use previously filtered dataframe
         filtered_df = filtered_df.drop(columns="Pathogenicity")
-        print(filtered_df)
+   
         #make heatmaps based on niches
         nichemaps = []
         colnames = list(filtered_df["Scientific_Name"])
@@ -831,7 +833,8 @@ if __name__ == "__main__":
         # Gridlines based on minor ticks
         ax.grid(which='minor', color='w', linestyle='-', linewidth=1.5)
 
-        cbar = plt.colorbar(im, ax=ax)
+        cax = fig.add_axes([ax.get_position().x1+0.05,ax.get_position().y0,0.03,ax.get_position().height])
+        cbar = plt.colorbar(im, cax=cax)
         cbar.outline.set_color('black')
 
         ax.set_xticks([])
@@ -844,6 +847,22 @@ if __name__ == "__main__":
         buf.close()
         plt.close(fig)
 
+        #PCOA plot from R (in html code)
+        for filename in os.listdir(plots_dir):
+
+            if site_name in filename:
+                if filename.endswith(".png"):
+                    with open(plots_dir + filename, "rb") as image_file:
+                        pcoa = base64.b64encode(image_file.read()).decode('utf-8')
+                if filename.endswith(".txt"):
+                    permanova = pd.read_csv(plots_dir+"/"+filename, delimiter='\t')
+                    permanova.to_csv(f'{output_path}/dataframes/{site_name}_permanova.csv', index=False)
+                    permanova_p = list(permanova["Pr(>F)"])[0]
+                    if permanova_p < 0.05:
+                        permanova_annotation = f"A PERMANOVA test showed that there is a statistically significant difference between the two datasets, with a <strong>p-value of {permanova_p}</strong>."
+                    else:
+                        permanova_annotation = f"A PERMANOVA test showed that there is no statistically significant difference between the two datasets, with a p-value of {permanova_p}."
+
         # Render the template with the Base64 string
         template = Template(filename=template_dir)
         html_content = template.render(site_name = site_name,
@@ -855,7 +874,8 @@ if __name__ == "__main__":
                                     all_taxa = all_taxa, nonan_taxa = nonan_taxa, width=width, annotation=annotation,
                                     lab_map = nichemaps[0], human_map = nichemaps[1], industry_map = nichemaps[2],
                                     lab_count = niche_sums[0],human_count = niche_sums[1], industry_count = niche_sums[2], niche_annotations=niche_annotations,
-                                    sig_table=sig_html, sigmap = sigmap, sig_count = sig_map.shape[0])
+                                    sig_table=sig_html, sigmap = sigmap, sig_count = sig_map.shape[0],
+                                    pcoa=pcoa, permanova_annotation=permanova_annotation)
 
         # Save the rendered HTML to a file
         with open(f"{output_path}site_reports/{site_name}_report.html", "w") as f:

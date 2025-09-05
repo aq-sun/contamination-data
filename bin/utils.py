@@ -147,7 +147,7 @@ def save_labelled_df(total_df, all_dates, output_path, df_type):
         #Change datetime timestamp back to string
         row_number = labelled_df.index.get_loc(labelled_df[labelled_df["Scientific_Name"] == "Date"].index[0])
         labelled_df.iloc[row_number, 2:] = [i.strftime('%Y-%m-%d') for i in labelled_df.iloc[row_number, 2:]]
-        labelled_df.to_csv(f"{output_path}/dataframes/highest_{df_type}_heatmap.txt", sep='\t', index=False)
+        labelled_df.to_csv(f"{output_path}/dataframes/top_{df_type}_heatmap.txt", sep='\t', index=False)
 
 def make_count_and_perc_dfs(needed_samples, reports, df_type):
     # Initialize an empty list to store dataframes
