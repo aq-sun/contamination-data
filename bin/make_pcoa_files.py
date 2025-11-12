@@ -174,6 +174,13 @@ if __name__ == "__main__":
         pcoa_df = pd.concat([transposed_current, transposed_other], axis=0)
         pcoa_df.fillna(value=0, inplace=True)
 
+        # Sum columns
+        columns_to_sum = pcoa_df.drop(columns=['Scientific_Name', 'site'])
+        column_sums = columns_to_sum.sum(axis=1)
+        pcoa_df["Counts_Overall"] = column_sums
+        pcoa_df = pcoa_df[~pcoa_df["Counts_Overall"].astype(float).isin([0])]
+        pcoa_df = pcoa_df.drop(columns="Counts_Overall")
+        
         pcoa_df.to_csv(os.path.join(r_path, f"{dataset_name}.pcoa.txt"), sep=',', index=False)
         site_loop += 1
 
